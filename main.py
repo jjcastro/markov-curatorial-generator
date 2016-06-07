@@ -29,5 +29,9 @@ def english():
 def spanish():
     return get_sentences(5, text_model_spanish)
 
+@app.route("/")
+def hello():
+    return "Working"
+
 if __name__ == "__main__":
     app.run()
