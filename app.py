@@ -3,6 +3,7 @@ import re
 
 from flask import Flask
 from flask import request
+from flask import jsonify
 
 
 # DEFAULT VARIABLES
@@ -28,7 +29,7 @@ text_model_spanish = markovify.Text(text_spanish)
 
 def get_sentences(n, text_model):
     string = ""
-    sentence_num = n if n is not None else default_num;
+    sentence_num = int(n) if n is not None else default_num;
     for i in range(sentence_num):
         sentence = text_model.make_sentence()
         if sentence is not None:
@@ -36,19 +37,29 @@ def get_sentences(n, text_model):
     clean_str = re.sub(r'\.([A-Z])', r'. \1', string)
     return clean_str
 
+def get_json_response(text, num, lang):
+    message = {
+        'sentences': int(num) if num is not None else default_num,
+        'text': text,
+        'language': lang
+    }
+    resp = jsonify(message)
+    return resp
 
 # ROUTES
 # ===========================
 
 @app.route("/english")
 def english():
-    request_num = int(request.args.get('num'));
-    return get_sentences(request_num, text_model_english)
+    request_num = request.args.get('num')
+    text = get_sentences(request_num, text_model_english)
+    return get_json_response(text, request_num, 'english')
 
 @app.route("/spanish")
 def spanish():
-    request_num = int(request.args.get('num'));
-    return get_sentences(request_num, text_model_spanish)
+    request_num = request.args.get('num');
+    text = get_sentences(request_num, text_model_spanish)
+    return get_json_response(text, request_num, 'spanish')
 
 @app.route("/")
 def hello():
