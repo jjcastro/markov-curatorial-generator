@@ -37,7 +37,7 @@ def get_sentences(n, text_model):
     clean_str = re.sub(r'\.([A-Z])', r'. \1', string)
     return clean_str
 
-def get_json_response(text, num, lang):
+def json_response(text, num, lang):
     message = {
         'sentences': int(num) if num is not None else default_num,
         'text': text,
@@ -53,17 +53,20 @@ def get_json_response(text, num, lang):
 def english():
     request_num = request.args.get('num')
     text = get_sentences(request_num, text_model_english)
-    return get_json_response(text, request_num, 'english')
+    return json_response(text, request_num, 'english')
 
 @app.route("/spanish")
 def spanish():
     request_num = request.args.get('num');
     text = get_sentences(request_num, text_model_spanish)
-    return get_json_response(text, request_num, 'spanish')
+    return json_response(text, request_num, 'spanish')
 
 @app.route("/")
 def hello():
-    return "Working"
+    message = {
+        'test': 'The API is working!'
+    }
+    return jsonify(message)
 
 
 # MAIN
