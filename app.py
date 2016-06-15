@@ -1,9 +1,16 @@
 import markovify
 import re
+import sys  
 
 from flask import Flask
 from flask import request
 from flask import jsonify
+
+# FIX FOR ENCODING
+# ===========================
+
+reload(sys)  
+sys.setdefaultencoding('utf8')
 
 
 # DEFAULT VARIABLES
@@ -27,14 +34,26 @@ with open(spanish_file) as f:
 text_model_english = markovify.Text(text_english)
 text_model_spanish = markovify.Text(text_spanish)
 
-def get_sentences(n, text_model):
+def get_sentences(n, text_model, fname, lname):
     string = ""
+
+    # use the default_num for sentences if not specified
     sentence_num = int(n) if n is not None else default_num;
+
+    # generate the appropriate num of sentences
     for i in range(sentence_num):
         sentence = text_model.make_sentence()
         if sentence is not None:
             string += sentence
-    clean_str = re.sub(r'\.([A-Z])', r'. \1', string)
+
+    # replace the artist's name (first full, then just last)
+    full_name = fname + ' ' + lname
+    string = string.replace(r'XXXX', full_name, 1)
+    named_str = re.sub(r'XXXX', lname, string)
+
+    # clean the resulting string
+    clean_str = re.sub(r'\.([A-Z])', r'. \1', named_str)
+
     return clean_str
 
 def json_response(text, num, lang):
@@ -52,13 +71,21 @@ def json_response(text, num, lang):
 @app.route("/english")
 def english():
     request_num = request.args.get('num')
-    text = get_sentences(request_num, text_model_english)
+    fname = request.args.get('fname')
+    lname = request.args.get('lname')
+
+    text = get_sentences(request_num, text_model_english, fname, lname)
     return json_response(text, request_num, 'english')
 
 @app.route("/spanish")
 def spanish():
-    request_num = request.args.get('num');
-    text = get_sentences(request_num, text_model_spanish)
+    request_num = request.args.get('num')
+    fname = request.args.get('fname')
+    lname = request.args.get('lname')
+
+    print lname
+
+    text = get_sentences(request_num, text_model_spanish, fname, lname)
     return json_response(text, request_num, 'spanish')
 
 @app.route("/")
