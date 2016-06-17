@@ -74,6 +74,10 @@ def english():
     fname = request.args.get('fname')
     lname = request.args.get('lname')
 
+    if None in (fname, lname):
+        message = { 'error': 'Must specify first name and last name.' }
+        return jsonify(message)
+
     text = get_sentences(request_num, text_model_english, fname, lname)
     return json_response(text, request_num, 'english')
 
@@ -83,7 +87,9 @@ def spanish():
     fname = request.args.get('fname')
     lname = request.args.get('lname')
 
-    print lname
+    if None in (fname, lname):
+        message = { 'error': 'Must specify first name and last name.' }
+        return jsonify(message);
 
     text = get_sentences(request_num, text_model_spanish, fname, lname)
     return json_response(text, request_num, 'spanish')
