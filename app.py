@@ -4,7 +4,8 @@ import sys
 
 from flask import Flask
 from flask import request
-from flask import jsonify
+# from flask import jsonify
+from flask_jsonpify import jsonify
 
 # FIX FOR ENCODING
 # ===========================
