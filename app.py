@@ -49,8 +49,8 @@ def get_sentences(n, text_model, fname, lname):
 
     # replace the artist's name (first full, then just last)
     full_name = fname + ' ' + lname
-    string = string.replace(r'XXXX', full_name, 1)
-    named_str = re.sub(r'XXXX', lname, string)
+    string = string.replace(r'XXXX', '<i>'+full_name+'</i>', 1)
+    named_str = re.sub(r'XXXX', '<i>'+lname+'</i>', string)
 
     # clean the resulting string
     clean_str = re.sub(r'\.([A-Z])', r'. \1', named_str)
