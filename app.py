@@ -43,7 +43,7 @@ def get_sentences(n, text_model, fname, lname):
 
     # generate the appropriate num of sentences
     for i in range(sentence_num):
-        sentence = text_model.make_sentence()
+        sentence = text_model.make_short_sentence(140)
         if sentence is not None:
             string += sentence
 
