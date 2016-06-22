@@ -53,7 +53,7 @@ def get_sentences(n, text_model, fname, lname):
     named_str = re.sub(r'XXXX', lname, string)
 
     # clean the resulting string
-    clean_str = re.sub(r'\.([A-Z])', r'. \1', named_str)
+    clean_str = re.sub(r'\.([A-Z]|[a-z])', r'. \1', named_str)
 
     return clean_str
 
