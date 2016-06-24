@@ -1,6 +1,7 @@
 import markovify
 import re
 import sys  
+import random
 
 from flask import Flask
 from flask import request
@@ -18,9 +19,14 @@ sys.setdefaultencoding('utf8')
 # ===========================
 
 default_num = 5;
-english_file = "./become-english.txt";
-spanish_file = "./become-spanish.txt";
+english_file = "./files/become-english.txt";
+spanish_file = "./files/become-spanish.txt";
 
+spanish_influences = [line.rstrip() for line in open("./files/spanish-influences.txt").readlines()]
+spanish_cities = [line.rstrip() for line in open("./files/spanish-cities.txt").readlines()]
+
+english_influences = [line.rstrip() for line in open("./files/english-influences.txt").readlines()]
+english_cities = [line.rstrip() for line in open("./files/english-cities.txt").readlines()]
 
 # LOGIC AND MARKOVIFY
 # ===========================
@@ -47,14 +53,8 @@ def get_sentences(n, text_model, fname, lname):
         if sentence is not None:
             string += sentence
 
-    # replace the artist's name (first full, then just last)
-    full_name = fname + ' ' + lname
-    string = string.replace(r'XXXX', '<i>'+full_name+'</i>', 1)
-    named_str = re.sub(r'XXXX', '<i>'+lname+'</i>', string)
-
     # clean the resulting string
-    clean_str = re.sub(r'\.([A-Z]|[a-z]|<)', r'. \1', named_str)
-
+    clean_str = re.sub(r'\.([A-Z]|[a-z]|<)', r'. \1', string)
     return clean_str
 
 def json_response(text, num, lang):
@@ -65,6 +65,28 @@ def json_response(text, num, lang):
     }
     resp = jsonify(message)
     return resp
+
+def process_name(text, fname, lname):
+    # replace the artist's name (first full, then just last)
+    full_name = fname + ' ' + lname
+    string = text.replace(r'XXXX', '<i>'+full_name+'</i>', 1)
+    named_str = re.sub(r'XXXX', '<i>'+lname+'</i>', string)
+    return named_str
+
+def process_bits(text, replaced, the_list):
+    string = text
+    ocurrences = text.count(replaced)
+
+    # copy the list
+    list_copy = list(the_list)
+
+    # replace all ocurrences with random elements from *list*, and don't repeat
+    for i in range(ocurrences):
+        chosen_elem = random.choice(list_copy)
+        string = string.replace(replaced, chosen_elem, 1)
+        list_copy.remove(chosen_elem)
+
+    return string
 
 # ROUTES
 # ===========================
@@ -80,6 +102,10 @@ def english():
         return jsonify(message)
 
     text = get_sentences(request_num, text_model_english, fname, lname)
+    text = process_name(text, fname, lname)
+    text = process_bits(text, 'AAAA', english_influences)
+    text = process_bits(text, 'BBBB', english_cities)
+
     return json_response(text, request_num, 'english')
 
 @app.route("/spanish")
@@ -93,6 +119,10 @@ def spanish():
         return jsonify(message);
 
     text = get_sentences(request_num, text_model_spanish, fname, lname)
+    text = process_name(text, fname, lname)
+    text = process_bits(text, 'ZZZZ', spanish_influences)
+    text = process_bits(text, 'YYYY', spanish_cities)
+
     return json_response(text, request_num, 'spanish')
 
 @app.route("/")
