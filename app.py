@@ -3,10 +3,10 @@ import re
 import sys  
 import random
 
-from flask import Flask
-from flask import request
-# from flask import jsonify
+from flask          import Flask
+from flask          import request
 from flask_jsonpify import jsonify
+from pymongo        import MongoClient
 
 # FIX FOR ENCODING
 # ===========================
@@ -22,52 +22,47 @@ default_num = 5;
 english_file = './files/become-english.txt'
 spanish_file = './files/become-spanish.txt'
 
-files = {
-    'english-influences': {
-        'filename': './files/english-influences.txt',
-        'list': None
-    },
-    'spanish-influences': {
-        'filename': './files/spanish-influences.txt',
-        'list': None
-    },
-    'english-cities': {
-        'filename': './files/english-cities.txt',
-        'list': None
-    },
-    'spanish-cities': {
-        'filename': './files/spanish-cities.txt',
-        'list': None
-    }
+bits = {
+    'english-influences': None,
+    'spanish-influences': None,
+    'english-cities': None,
+    'spanish-cities': None
 }
 
-# LOGIC AND MARKOVIFY
+
+# CONNECTION TO MONGODB
 # ===========================
 
-app = Flask(__name__)
+uri = 'mongodb://becomeacurator:R2h83s4L9sQxzQ@ds021994.mlab.com:21994/become-a-curator'
+client = MongoClient(uri)
+db = client['become-a-curator']
+collection = db['files']
+
+
+# LOAD FILES AND DATABASE
+# ===========================
 
 with open(english_file) as f:
     text_english = f.read()
 with open(spanish_file) as f:
     text_spanish = f.read()
 
-with open(files['english-influences']['filename']) as f:
-    files['english-influences']['list'] = f.read().splitlines() 
+# read the documents fromthe database
+for key in bits:
+    document = collection.find_one({ 'name': key })
+    bits[key] = document['lines']
 
-with open(files['spanish-influences']['filename']) as f:
-    files['spanish-influences']['list'] = f.read().splitlines() 
 
-with open(files['english-cities']['filename']) as f:
-    files['english-cities']['list'] = f.read().splitlines() 
+# LOGIC AND MARKOVIFY
+# ===========================
 
-with open(files['spanish-cities']['filename']) as f:
-    files['spanish-cities']['list'] = f.read().splitlines() 
+app = Flask(__name__)
 
 text_model_english = markovify.Text(text_english)
 text_model_spanish = markovify.Text(text_spanish)
 
 def get_sentences(n, text_model, fname, lname):
-    string = ""
+    string = ''
 
     # use the default_num for sentences if not specified
     sentence_num = int(n) if n is not None else default_num;
@@ -116,14 +111,14 @@ def process_bits(text, replaced, the_list):
 # ROUTES
 # ===========================
 
-@app.route("/")
+@app.route('/')
 def hello():
     message = {
         'test': 'The API is working!'
     }
     return jsonify(message)
 
-@app.route("/english")
+@app.route('/english')
 def english():
     request_num = request.args.get('num')
     fname = request.args.get('fname')
@@ -135,12 +130,12 @@ def english():
 
     text = get_sentences(request_num, text_model_english, fname, lname)
     text = process_name(text, fname, lname)
-    text = process_bits(text, 'AAAA', files['english-influences']['list'])
-    text = process_bits(text, 'BBBB', files['english-cities']['list'])
+    text = process_bits(text, 'AAAA', bits['english-influences'])
+    text = process_bits(text, 'BBBB', bits['english-cities'])
 
     return json_response(text, request_num, 'english')
 
-@app.route("/spanish")
+@app.route('/spanish')
 def spanish():
     request_num = request.args.get('num')
     fname = request.args.get('fname')
@@ -152,43 +147,46 @@ def spanish():
 
     text = get_sentences(request_num, text_model_spanish, fname, lname)
     text = process_name(text, fname, lname)
-    text = process_bits(text, 'ZZZZ', files['spanish-influences']['list'])
-    text = process_bits(text, 'YYYY', files['spanish-cities']['list'])
+    text = process_bits(text, 'ZZZZ', bits['spanish-influences'])
+    text = process_bits(text, 'YYYY', bits['spanish-cities'])
 
     return json_response(text, request_num, 'spanish')
 
 @app.route('/bits', methods=['GET', 'POST'])
 def add_bits():
-    print 'entering'
-    print request.method
-    resp = jsonify({ 'Error': 'Couldn\'t find or open file.' })
+    resp = jsonify({ 'Error': 'Couldn\'t find or open document.' })
     
-    file_from_req = request.args.get('file')
-    file_name = files[ file_from_req ]['filename']
+    document_name = request.args.get('document')
+    document = collection.find_one({ 'name':document_name })
 
-    with open(file_name, 'a+') as f:
+    if document is not None:
         if request.method == 'POST':
             content = request.get_json()
 
             # write the string to the specified file
-            f.write("\n")
-            f.write(content['string'])
+            result = collection.update_one(
+                {'name': document_name},
+                {
+                    '$addToSet': {
+                        'lines': content['string']
+                    }
+                }
+            )
 
             # update the list with the modified file
-            f.seek(0)
-            files[ file_from_req ]['list'] = f.read().splitlines()
+            updated_document = collection.find_one({ 'name':document_name })
+            bits[ document_name ] = updated_document['lines']
 
             # notify success
             message = {
                 'success': True,
                 'message': 'The string ' + content['string']
-                         + ' has been added to the list ' + file_from_req
+                         + ' has been added to the list ' + document_name
             }
             resp = jsonify(message)
         elif request.method == 'GET':
-            f.seek(0)
             message = {
-                'lines': f.read().splitlines()
+                'lines': document['lines']
             }
             resp = jsonify(message)
     return resp
@@ -199,5 +197,5 @@ def add_bits():
 # MAIN
 # ===========================
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(host = '0.0.0.0', port = 5000)
