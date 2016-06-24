@@ -157,7 +157,7 @@ def spanish():
 
     return json_response(text, request_num, 'spanish')
 
-@app.route('/add', methods=['GET', 'POST'])
+@app.route('/bits', methods=['GET', 'POST'])
 def add_bits():
     print 'entering'
     print request.method
