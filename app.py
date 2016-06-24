@@ -4,6 +4,7 @@ import sys
 import random
 
 from flask          import Flask
+from flask_cors     import CORS, cross_origin
 from flask          import request
 from flask_jsonpify import jsonify
 from pymongo        import MongoClient
@@ -57,6 +58,10 @@ for key in bits:
 # ===========================
 
 app = Flask(__name__)
+
+# enable CORS (Cross Origin Requests)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 text_model_english = markovify.Text(text_english)
 text_model_spanish = markovify.Text(text_spanish)
@@ -153,6 +158,7 @@ def spanish():
     return json_response(text, request_num, 'spanish')
 
 @app.route('/bits', methods=['GET', 'POST'])
+@cross_origin()
 def add_bits():
     resp = jsonify({ 'Error': 'Couldn\'t find or open document.' })
     
