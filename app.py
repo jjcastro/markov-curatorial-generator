@@ -19,14 +19,27 @@ sys.setdefaultencoding('utf8')
 # ===========================
 
 default_num = 5;
-english_file = "./files/become-english.txt";
-spanish_file = "./files/become-spanish.txt";
+english_file = './files/become-english.txt'
+spanish_file = './files/become-spanish.txt'
 
-spanish_influences = [line.rstrip() for line in open("./files/spanish-influences.txt").readlines()]
-spanish_cities = [line.rstrip() for line in open("./files/spanish-cities.txt").readlines()]
-
-english_influences = [line.rstrip() for line in open("./files/english-influences.txt").readlines()]
-english_cities = [line.rstrip() for line in open("./files/english-cities.txt").readlines()]
+files = {
+    'english-influences': {
+        'filename': './files/english-influences.txt',
+        'list': None
+    },
+    'spanish-influences': {
+        'filename': './files/spanish-influences.txt',
+        'list': None
+    },
+    'english-cities': {
+        'filename': './files/english-cities.txt',
+        'list': None
+    },
+    'spanish-cities': {
+        'filename': './files/spanish-cities.txt',
+        'list': None
+    }
+}
 
 # LOGIC AND MARKOVIFY
 # ===========================
@@ -37,6 +50,18 @@ with open(english_file) as f:
     text_english = f.read()
 with open(spanish_file) as f:
     text_spanish = f.read()
+
+with open(files['english-influences']['filename']) as f:
+    files['english-influences']['list'] = f.read().splitlines() 
+
+with open(files['spanish-influences']['filename']) as f:
+    files['spanish-influences']['list'] = f.read().splitlines() 
+
+with open(files['english-cities']['filename']) as f:
+    files['english-cities']['list'] = f.read().splitlines() 
+
+with open(files['spanish-cities']['filename']) as f:
+    files['spanish-cities']['list'] = f.read().splitlines() 
 
 text_model_english = markovify.Text(text_english)
 text_model_spanish = markovify.Text(text_spanish)
@@ -132,12 +157,41 @@ def spanish():
 
     return json_response(text, request_num, 'spanish')
 
-# @app.route('/add', methods=['GET', 'POST'])
-# def add_bits():
-#     if request.method == 'POST':
-#         do_the_login()
-#     else:
-#         show_the_login_form()
+@app.route('/add', methods=['GET', 'POST'])
+def add_bits():
+    print 'entering'
+    print request.method
+    resp = jsonify({ 'Error': 'Couldn\'t find or open file.' })
+    
+    file_from_req = request.args.get('file')
+    file_name = files[ file_from_req ]['filename']
+
+    with open(file_name, 'a+') as f:
+        if request.method == 'POST':
+            content = request.get_json()
+
+            # write the string to the specified file
+            f.write("\n")
+            f.write(content['string'])
+
+            # update the list with the modified file
+            f.seek(0)
+            files[ file_from_req ]['list'] = f.read().splitlines()
+
+            # notify success
+            message = {
+                'success': True,
+                'message': 'The string ' + content['string']
+                         + ' has been added to the list ' + file_from_req
+            }
+            resp = jsonify(message)
+        elif request.method == 'GET':
+            f.seek(0)
+            message = {
+                'lines': f.read().splitlines()
+            }
+            resp = jsonify(message)
+    return resp
 
 
 
