@@ -135,8 +135,8 @@ def english():
 
     text = get_sentences(request_num, text_model_english, fname, lname)
     text = process_name(text, fname, lname)
-    text = process_bits(text, 'AAAA', english_influences)
-    text = process_bits(text, 'BBBB', english_cities)
+    text = process_bits(text, 'AAAA', files['english-influences']['list'])
+    text = process_bits(text, 'BBBB', files['english-cities']['list'])
 
     return json_response(text, request_num, 'english')
 
@@ -152,8 +152,8 @@ def spanish():
 
     text = get_sentences(request_num, text_model_spanish, fname, lname)
     text = process_name(text, fname, lname)
-    text = process_bits(text, 'ZZZZ', spanish_influences)
-    text = process_bits(text, 'YYYY', spanish_cities)
+    text = process_bits(text, 'ZZZZ', files['spanish-influences']['list'])
+    text = process_bits(text, 'YYYY', files['spanish-cities']['list'])
 
     return json_response(text, request_num, 'spanish')
 
