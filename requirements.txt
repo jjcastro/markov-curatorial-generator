@@ -5,6 +5,7 @@ itsdangerous==0.24
 Jinja2==2.8
 markovify==0.3.1
 MarkupSafe==0.23
+pymongo==3.2.2
 Unidecode==0.4.19
 Werkzeug==0.11.10
 flask_jsonpify==1.5.0
