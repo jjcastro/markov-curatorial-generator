@@ -1,6 +1,6 @@
 # Curatorial statement generator
 
-Generates curatorial statements for contemporary art expositions, using Markov chains and texts from galleries around the world. for more info, text sources and a more detailed explanation visit [becomeacurator.com](http://becomeacurator.com).
+Generates curatorial statements for contemporary art expositions, using Markov chains and texts from galleries around the world. For more info, text sources and a more detailed explanation visit [becomeacurator.com](http://becomeacurator.com).
 
 ## About the code
 
