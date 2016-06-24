@@ -91,6 +91,13 @@ def process_bits(text, replaced, the_list):
 # ROUTES
 # ===========================
 
+@app.route("/")
+def hello():
+    message = {
+        'test': 'The API is working!'
+    }
+    return jsonify(message)
+
 @app.route("/english")
 def english():
     request_num = request.args.get('num')
@@ -125,12 +132,14 @@ def spanish():
 
     return json_response(text, request_num, 'spanish')
 
-@app.route("/")
-def hello():
-    message = {
-        'test': 'The API is working!'
-    }
-    return jsonify(message)
+# @app.route('/add', methods=['GET', 'POST'])
+# def add_bits():
+#     if request.method == 'POST':
+#         do_the_login()
+#     else:
+#         show_the_login_form()
+
+
 
 
 # MAIN
