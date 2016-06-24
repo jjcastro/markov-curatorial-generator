@@ -191,7 +191,10 @@ def add_bits():
             }
             resp = jsonify(message)
         elif request.method == 'GET':
-            message = document;
+            message = {
+                'name': document['name'],
+                'lines': document['lines']
+            }
             resp = jsonify(message)
     return resp
 
