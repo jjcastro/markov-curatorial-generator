@@ -198,8 +198,40 @@ def add_bits():
             resp = jsonify(message)
     return resp
 
+@app.route('/names', methods=['GET', 'POST'])
+@cross_origin()
+def add_bits():
+    resp = jsonify({ 'Error': 'Couldn\'t find or open document.' })
+    
+    document = collection.find_one({ 'name':'users' })
 
+    if document is not None:
+        if request.method == 'POST':
+            content = request.get_json()
 
+            # write the string to the specified file
+            result = collection.update_one(
+                {'name': 'users'},
+                {
+                    '$addToSet': {
+                        'users': content['user']
+                    }
+                }
+            )
+
+            # notify success
+            message = {
+                'success': True,
+                'message': 'The name ' + content['user']
+                         + ' has been added to the list.'
+            }
+            resp = jsonify(message)
+        elif request.method == 'GET':
+            message = {
+                'users': document['users']
+            }
+            resp = jsonify(message)
+    return resp
 
 # MAIN
 # ===========================
