@@ -200,7 +200,7 @@ def add_bits():
 
 @app.route('/names', methods=['GET', 'POST'])
 @cross_origin()
-def add_bits():
+def add_names():
     resp = jsonify({ 'Error': 'Couldn\'t find or open document.' })
     
     document = collection.find_one({ 'name':'users' })
